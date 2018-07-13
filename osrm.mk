@@ -6,8 +6,15 @@ all: galicia-norte-portugal.osrm.mldgr galicia-norte-portugal.osrm.cell_metrics 
 	galicia-norte-portugal.osrm.names galicia-norte-portugal.osrm.icd galicia-norte-portugal.osrm.fileIndex \
 	galicia-norte-portugal.osrm.edges galicia-norte-portugal.osrm.nbg_nodes galicia-norte-portugal.osrm.geometry \
 	galicia-norte-portugal.osrm.turn_duration_penalties galicia-norte-portugal.osrm.turn_weight_penalties \
-	galicia-norte-portugal.osrm.ebg_nodes 
+	galicia-norte-portugal.osrm.ebg_nodes \
+	spain-latest.osm.pbf portugal-latest.osm.pbf
 
+spain-latest.osm.pbf:
+	curl -O http://download.geofabrik.de/europe/spain-latest.osm.pbf
+
+portugal-latest.osm.pbf:
+	curl -O http://download.geofabrik.de/europe/portugal-latest.osm.pbf
+		
 # Move to osmosis because couldn't get files splitted and merged with osmconvert to work with osrm-extract
 # osmosis is slower than osmconvert
 galicia.osm.pbf: spain-latest.osm.pbf
