@@ -15,6 +15,7 @@ services:
       SCHEMA_REGISTRY_HOST_NAME: schemaregistry
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
       SCHEMA_REGISTRY_DEBUG: "true"
+      SCHEMA_REGISTRY_AVRO_COMPATIBILITY_LEVEL: full_transitive
   kafka:
     image: confluentinc/cp-kafka:5.1.2
     ports:
