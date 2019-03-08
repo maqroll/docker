@@ -9,7 +9,7 @@ listTopics:
 
 # always read with the related schema version
 consume:
-	$(schemaRegistryCmd) /usr/bin/kafka-avro-console-consumer --bootstrap-server kafka:29092 --from-beginning --property print.key=true --topic atopic --timeout-ms 10000
+	$(schemaRegistryCmd) /usr/bin/kafka-avro-console-consumer --bootstrap-server kafka:29092 --from-beginning --property print.key=true --property print.schema.ids=true --property schema.id.separator=: --topic atopic --timeout-ms 10000
 
 # {"f1":"a"} -> ok (register schema in schema registry)
 # {"a2":"b"} -> fail
@@ -25,3 +25,8 @@ produce2:
 	$(schemaRegistryCmd) /usr/bin/kafka-avro-console-producer --broker-list kafka:29092 --property value.schema='{"type":"record","name":"myrecord","fields":[{"name":"f1","type":"string"},{"name":"f2","type":["int","null"],"default":5}]}' --topic atopic
 
 # you can use *produce* after using *produce2* without creating a new schema version
+
+# FAIL because schema is not registered
+produce3:
+	$(schemaRegistryCmd) /usr/bin/kafka-avro-console-producer --broker-list kafka:29092 --property auto.register=false --property value.schema='{"type":"record","name":"myrecord","fields":[{"name":"f1","type":"string"},{"name":"f2","type":["int","null"],"default":5},{"name":"f3","type":["int","null"],"default":7}]}' --topic atopic
+
