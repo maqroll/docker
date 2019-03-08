@@ -1,0 +1,16 @@
+-- Get registered schemas (from schema-registry)
+curl -X GET http://:38081/subjects
+
+-- see Makefile for cli kafka usage
+
+-- register schema version
+curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" --data '{"schema": "{\"type\":\"record\",\"name\":\"Payment\",\"namespace\":\"io.confluent.examples.clients.basicavro\",\"fields\":[{\"name\":\"id\",\"type\":\"string\"},{\"name\":\"amount\",\"type\":\"double\"}]}"}' http://:38081/subjects/atopic-value/versions
+
+avro.compatibility.level
+- none
+- backward (new schema can read data produced by latest registered schema) DEFAULT!!!!
+- backward_transitive (new schema can read data produced by all previously registered schemas)
+- forward (latest registered schema can read data produced by new schema)
+- forward_transitive (all previously registered schemas can read data produced by new schema)
+- full (new and latest registered schema are forward and backward compatible)
+- full_transitive (new and all previously registered schemas are forward and backward compatible)
