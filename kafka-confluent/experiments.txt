@@ -1,0 +1,43 @@
+DOCKER_CMD="docker run -it -v ${PWD}/log4j.conf:/tmp/log4j.conf -P --net kafka-confluent_default --link kafka-confluent_kafka_1:kafka --link kafka-confluent_zookeeper_1:zookeper -e KAFKA_LOG4J_OPTS=-Dlog4j.configuration=file:/tmp/log4j.conf confluentinc/cp-kafka:5.3.1-1"
+
+DOCKER_NONTTY_CMD="docker run -i -v ${PWD}/log4j.conf:/tmp/log4j.conf -P --net kafka-confluent_default --link kafka-confluent_kafka_1:kafka --link kafka-confluent_zookeeper_1:zookeper -e KAFKA_LOG4J_OPTS=-Dlog4j.configuration=file:/tmp/log4j.conf confluentinc/cp-kafka:5.3.1-1"
+
+DOCKER_BASH_CMD="docker run --name kafka_client --rm -it -v ${PWD}/log4j.conf:/tmp/log4j.conf -P --net kafka-confluent_default --link kafka-confluent_kafka_1:kafka --link kafka-confluent_zookeeper_1:zookeper -e KAFKA_LOG4J_OPTS=-Dlog4j.configuration=file:/tmp/log4j.conf confluentinc/cp-kafka:5.3.1-1 bash"
+
+${DOCKER_CMD} /usr/bin/kafka-topics --zookeeper zookeeper:32181 --create --partitions 1 --replication-factor 1 --topic atopic
+
+${DOCKER_CMD} /usr/bin/kafka-topics --bootstrap-server kafka:29092 --list
+
+for i in `seq 1009`; do echo "hello"; done > test
+
+-------------------------------------------------------------------
+
+cat test | ${DOCKER_NONTTY_CMD} /usr/bin/kafka-console-producer --producer-property batch.size=1000 --broker-list kafka:29092 --topic atopic | egrep "Sent produce request|Received produce response" | wc -l
+
+cat test | ${DOCKER_NONTTY_CMD} /usr/bin/kafka-console-producer --producer-property batch.size=10 --broker-list kafka:29092 --topic atopic | egrep "Sent produce request|Received produce response" | wc -l
+
+-------------------------------------------------------------------
+
+cat test | ${DOCKER_NONTTY_CMD} /usr/bin/kafka-console-producer --producer-property batch.size=10 --broker-list kafka:29092 --topic atopic | egrep "Sent produce request|Received produce response" | tail -5
+
+cat test | ${DOCKER_NONTTY_CMD} /usr/bin/kafka-console-producer --producer-property batch.size=10 --producer-property max.in.flight.requests.per.connection=1 --broker-list kafka:29092 --topic atopic | egrep "Sent produce request|Received produce response" | tail -5
+
+-------------------------------------------------------------------
+
+cat test | ${DOCKER_NONTTY_CMD} /usr/bin/kafka-console-producer --producer-property enable.idempotence=true --producer-property max.in.flight.requests.per.connection=10 --producer-property acks=all --broker-list kafka:29092 --topic atopic | egrep "Sent produce request|Received produce response" | wc -l
+
+cat test | ${DOCKER_NONTTY_CMD} /usr/bin/kafka-console-producer --producer-property enable.idempotence=true --producer-property max.in.flight.requests.per.connection=5 --producer-property acks=all --broker-list kafka:29092 --topic atopic | egrep "Sent produce request|Received produce response" | wc -l
+
+-------------------------------------------------------------------
+
+cat test | ${DOCKER_NONTTY_CMD} /usr/bin/kafka-console-producer --producer-property enable.idempotence=true --producer-property acks=all --broker-list kafka:29092 --topic atopic | grep "ProducerId set to"
+
+cat test | ${DOCKER_NONTTY_CMD} /usr/bin/kafka-console-producer --producer-property acks=all --producer-property acks=all --broker-list kafka:29092 --topic atopic | grep "ProducerId set to"
+
+-------------------------------------------------------------------
+
+docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock gaiaadm/pumba netem -duration 1m delay --time 1000 --jitter 500 --distribution normal --correlation 1  kafka_client
+
+seq 1009 | /usr/bin/kafka-console-producer --producer-property max.in.flight.requests.per.connection=50 --producer-property acks=all --producer-property batch.size=10 --broker-list kafka:29092 --topic atopic | egrep "Retrying"
+
+seq 1009 | /usr/bin/kafka-console-producer --producer-property enable.idempotence=true --producer-property acks=all --broker-list kafka:29092 --topic atopic | egrep "Retrying|sequence number"
