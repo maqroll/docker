@@ -8,7 +8,7 @@ ${DOCKER_CMD} /usr/bin/kafka-topics --zookeeper zookeeper:32181 --create --parti
 
 ${DOCKER_CMD} /usr/bin/kafka-topics --bootstrap-server kafka:29092 --list
 
-for i in `seq 1009`; do echo "hello"; done > test
+seq 1009 > test
 
 -------------------------------------------------------------------
 
